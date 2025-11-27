@@ -1,65 +1,53 @@
-const connection = require('../utils/db-connection');
 const db=require('../utils/db-connection');
+const Student=require('../models/students')
 
-
-const addEntries=(req,res)=>{
-    const {email,name}=req.body;
-    const insertQuery='INSERT INTO Students(email,name) VALUES (?,?)';
-
-    db.execute(insertQuery,[email,name],(err)=>{
-        if(err){
-            console.log(err.message);
-            res.status(500).send(err.message);
-            db.end();
-            return;
-        }
-
-        console.log("Value has been inserted");
-        res.status(200).send(`Student with name ${name} successfully added`);
-    })
+const addEntries= async (req,res)=>{
+    try{
+        const {email,name}=req.body;
+        const student= await Student.create({
+            email:email,
+            name:name
+        });
+        res.status(201).send(`Student with name: ${name} is created`)
+    } catch(error){
+        res.status(500).send('Unable to make any entry'); 
+    }
 }
 
-const updateEntry=(req,res)=>{
+const updateEntry= async (req,res)=>{
+    try {
     const {id}=req.params;
     const {name}=req.body;
-    const updateQuery="UPDATE Students set name=? WHERE id=?";
 
-    db.execute(updateQuery,[name,id],(err,result)=>{
-        if(err){
-            console.log(err.message);
-            res.status(500).send(err.message);
-            db.end();
-            return;
-        }
-
-        if(result.affectedRows===0){
-            res.status(404).send("Student not found");
-            return;
-        }
-
-        res.status(200).send("Student has been updated");
-
-    })
+    const student= await Student.findByPk(id);
+    if(!student){
+        res.status(404).send("Student not found");
+    }
+    student.name=name;
+    await student.save();
+    res.status(200).send("Student has been updated"); 
+    } catch (error) {
+        console.log(error);
+        res.status(500).send("Student cannot be updated");
+    }
 }
 
-const deleteEntry=(req,res)=>{
-    const {id}=req.params;
-    const deleteQuery='DELETE FROM Students WHERE id=?';
-
-    db.execute(deleteQuery,[id],(err,result)=>{
-        if(err){
-            console.log(err.message);
-            res.status(500).send(err.message);
-            db.end();
-            return;
-        }
-        if(result.affectedRows===0){
+const deleteEntry= async (req,res)=>{
+    try {
+        const {id}=req.params;
+        const student=await Student.destroy({
+            where:{
+                id:id
+            }
+        })
+        if(!student){
             res.status(404).send("Student not found");
-            db.end();
-            return;
         }
-        res.status(200).send(`Student with ${id} is deleted`);
-    })
+        res.status(200).send("Student is deleted");
+    } catch (error) {
+        console.log(error);
+        res.status(500).send("Error encountered while deleting");
+    }
 }
 
 module.exports={

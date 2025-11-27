@@ -1,6 +1,6 @@
 const {Sequelize}=require('sequelize');
 
-const sequelize=new Sequelize('testdb','root','252582',{
+const sequelize = new Sequelize('testdb','root','252582',{
     host:"localhost",
     dialect:"mysql"
 });
@@ -47,3 +47,5 @@ module.exports=sequelize;
 //     })
 // })
 // module.exports=connection;
+
+module.exports=sequelize;
