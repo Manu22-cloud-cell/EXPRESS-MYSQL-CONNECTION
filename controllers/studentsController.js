@@ -1,5 +1,7 @@
 const db=require('../utils/db-connection');
-const Student=require('../models/students')
+const Student=require('../models/students');
+const IdentityCard=require('../models/identityCard');
+const Department=require('../models/department');
 
 const addEntries= async (req,res)=>{
     try{
@@ -11,6 +13,33 @@ const addEntries= async (req,res)=>{
         res.status(201).send(`Student with name: ${name} is created`)
     } catch(error){
         res.status(500).send('Unable to make any entry'); 
+    }
+}
+
+const addingValuesToStudentsAndIdentityTable= async (req,res)=>{
+    try {
+        const student= await Student.create(req.body.student);
+        const idCard= await IdentityCard.create({
+            ...req.body.identityCard,
+            newStudentId:student.id
+        })
+        res.status(201).json({student,idCard})
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+};
+
+const addingValuesToStudentsAndDepartmentTable= async (req,res)=>{
+    try {
+        const department= await Department.create(req.body.department);
+        const student=await Student.create({
+            ...req.body.student,
+            departmentId:department.id
+        })
+        res.status(201).json({department,student})
+        
+    } catch (error) {
+        res.status(500).json({error:error.message})
     }
 }
 
@@ -53,5 +82,7 @@ const deleteEntry= async (req,res)=>{
 module.exports={
     addEntries,
     updateEntry,
-    deleteEntry
+    deleteEntry,
+    addingValuesToStudentsAndIdentityTable,
+    addingValuesToStudentsAndDepartmentTable
 }
